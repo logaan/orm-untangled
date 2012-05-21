@@ -1,0 +1,115 @@
+# orm-untangled
+
+I don't have much negative to say about ORM. Most of my experience has been
+with ActiveRecord. I've mostly found it to be very pleasant and rarely
+touched the cases that it handles poorly. It does do quite a lot, and when I
+see that there normally seems to be a good opportunity to break out some more
+simple and often more powerful chunks.
+
+Lets look at ActiveRecord offers us:
+
+    - Structure      - Queries     - Database abstraction
+    - Validations    - Callbacks   - Persistance
+    - Migrations     - Caching     - Relationships
+    - Mass assignment
+
+Instead of one tool that provides us these 10 functions what would it look like
+if we instead had 10 tools.
+
+## Structure
+
+I see three options here in the clojure world. Maps, types and records. Types
+would most closely link to the rails way of doing things. But with types you
+lose associativity. Maps are also appealing as they're freely created and
+consumed by a great deal of code. However they have the unfortunate inability
+to be used with protocols. We could still acheive polymorphism through multi
+methods and the use of type metadata but I think a protocols are pretty neat.
+Records also give us an edge in memory consumption over maps as the keys are
+stored once per type or record rather than once per record (though that's a
+side bonus not a deciding feature for me). As records implement the same
+interfaces as maps we don't lose any of their ability to be consumed by
+unknowning services (ie: should serialize to json easily).
+
+One area where this approach is perhaps inferior to the rails way is that you
+specify the fields of your data twice. Once in your db and once in your code
+when you define the record. This would bother me more if defrecord wasn't so
+terse. There is the benefit of decoupling your in memory structure from that of
+your database, though I haven't been in many cases where I've felt the
+need.
+
+Comparison (obviously the rails version does more. we're trying to simplify):
+
+     Rails: rails generate model foo bar:string baz:integer
+            class Foo < ActiveRecord::Base
+            end
+
+  Clojure: (defrecord Foo [bar baz])
+
+So has doing things this way given us any more power? Well now we can represent
+foos as foos no matter where we loaded them from (and if we really care we can
+use metadata).
+
+  (map->Person (person.db/first conn))
+  (map->Person (person.json/first "http://person.com"))
+
+Also we can treat our data as data rather than needing to generate (or write)
+special methods to access its attributes. You do loose the transparency of
+virtual attributes that you get with rails. I often found myself using them for
+making my object conform to an interface (like active scaffold using the name
+field as text in links). That sort of usage would be best handled by a
+protocol.
+
+## Validations
+
+Validations don't belong on the model. It's quite a common case that you've got
+different requirements for what counts as valid data depending on where it's
+coming from. Like needing a password to be input on account creation, storing
+it in a virtual field and validating against it but then storing the encrypted
+password in another field. When you come to edit your account details you're
+most likely not going to need the password to be enterted again. Instead I
+think that validations need to be thought of as being more closely tied to
+forms (or other input methods) or by themselves.
+
+If we have validations sitting by themselves we're also able to compose them
+and to write meta validations. So you could have:
+
+  Composition: 
+
+  (defvalidation common
+    (required :name, :email))
+  (defvalidation signup
+    (required :password)
+    (confirm  :password)
+    common)
+  (defvalidation update
+    common)
+
+  Meta:
+
+  (defvalidation standard-signup
+    all-fields-required   ; makes sure the data has no nil values
+    no-curse-words        ; keep things polite across all fields
+    email-fields          ; expects fields with email in the name to be emails
+    password-fields)      ; ditto for passwords
+
+Once you've introduced the idea of composing validations you can even have
+different kinds of composition. Perhaps you want to avoid overwhelming users
+with validation errors and instead want to cater for the common cases and only
+present the edge cases if they crop up. There's not much point telling someone
+their password is the wrong length and that it's required:
+
+  (defvalidation password
+    [required]
+    [(length :gt 6 :lt 128)
+     (match #"[a-zA-Z]")
+     (match #"[0-9]")])
+
+And of course all these validations could be run over any data. Whether you're
+pulling it in from a web service, a database or a csv file somewhere.
+
+
+## License
+
+Copyright (C) 2012 FIXME
+
+Distributed under the Eclipse Public License, the same as Clojure.
