@@ -8,10 +8,10 @@ simple and often more powerful chunks.
 
 Lets look at ActiveRecord offers us:
 
-    - Structure      - Queries     - Database abstraction
-    - Validations    - Callbacks   - Persistance
-    - Migrations     - Caching     - Relationships
-    - Mass assignment
+      - Structure           - Queries         - Database abstraction
+      - Validations         - Callbacks       - Persistance
+      - Migrations          - Caching         - Relationships
+      - Mass assignment   
 
 Instead of one tool that provides us these 10 functions what would it look like
 if we instead had 10 tools.
