@@ -1,0 +1,57 @@
+; Compound: Mixed together. Unable to seperate into parts. Cake.
+; 
+; Composite: Placed together. Made of simple parts. Lego.
+; 
+; 
+; Orm is currently compound. It's like a cake. If you don't like the cake
+; you're going to have to bake another one. Sure it was made of flour and eggs
+; but you're not getting them back. Perhaps we could acheive the same
+; functionality by compositing simple parts. Instead of a cake lets build a
+; lego ORM. Then we can swap out ths bits we don't want. We can even take some
+; small piece and us it for some other purpose.
+; 
+; 
+; Immigrate is a function that'll pull in each of these small pieces and
+; present them in a namespace that's convenient fo the consumer.
+; 
+; Use the predicate library and compose predicates with error messages. Like:
+
+  [nil? "is required."]
+
+; But then you need to specify the field..
+
+  [:name "is required" nil? ]
+
+; Perhaps that happens higher..
+
+  (defn is_required [field name]
+    {:predicate nil?
+     :error     "% is required"})
+
+  (is_required :name)
+
+; If we write our tests in an input output kind of way then we can treat them
+; tabularly.
+
+(test is_required
+  "The field specified should be required"
+  {:name "foo"}  empty?
+  {}            (= ["name is required"]))
+
+; Some kind of partial application makes sense.. And applying the value
+; through.
+
+
+; Just passing in a field kinda sucks. Instead wouldn't it be cool if we could
+; pass in some kind of data finding function. Like get-in :D
+
+  (defn is_four [finder name]
+    {:predicate (partial = 4)
+     :error     "% is required"})
+
+  (defn is_visa [finder name]
+    {:validator (is_four (conj finder 0) name)
+     :error     "% must be a Visa card number (start with 4)"})
+
+  (is_visa [:user :credit_card :number] "The user's credit card number")
+
