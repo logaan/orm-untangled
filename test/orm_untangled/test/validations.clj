@@ -12,3 +12,4 @@
   (are [act exp] (= act exp)
     (validate {:name "Logan"} creation-validations) '()
     (validate {:age "24"} creation-validations)     '("Name is required.")))
+

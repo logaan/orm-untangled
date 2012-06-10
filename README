@@ -2,9 +2,9 @@
 
 I don't have much negative to say about ORM. Most of my experience has been
 with ActiveRecord. I've mostly found it to be very pleasant and rarely
-touched the cases that it handles poorly. It does do quite a lot, and when I
-see that there normally seems to be a good opportunity to break out some more
-simple and often more powerful chunks.
+touched the cases that it handles poorly. However it serves many purposes, and
+when I see that there normally seems to be a good opportunity to break it into
+some more simple and often more powerful chunks.
 
 Lets look at ActiveRecord offers us:
 
